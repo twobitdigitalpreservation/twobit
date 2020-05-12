@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#The purpose of this script is to import new media files using a systematic acquisition process.
+#This script performs the following operations:
+# 1. Identify source files and target destination.
+# 2. Create a new folder in the HRW project folder within "originals" named after today's date and the Videographer's name. This folder is the target destination.
+# 3. Transfer source files to this target destination using rsync command. Logs from this trasfer are stored in the project "logs" folder.
+# 4. Print a label for the external hard drive associated with this acquisition.
+# 4. Create checksums for all media transfered in this ingest. Store checksum file in the "logs" folder.
+
+#Receive user input for source, destination, and folder and log naming
+tput setaf 6; echo "Please drag and drop source media here"
+read sourceData
+tput setaf 7; echo "Please drag and drop destination location here"
+read destinationLocation
+tput setaf 6; echo "Please enter subject information here"
+read subjectInformation
+
+#Feedback to the user
+echo "    "
+tput setaf 7; echo "   file transfer in progress..."
+echo "    "
+
+#Perform archival file transfer via RSYNC
+mkdir $destinationLocation/originals
+mkdir $destinationLocation/logs
+rsync -va --progress --stats $sourceData $destinationLocation/originals/$(date +"%Y-%m-%d_")"$subjectInformation"/ > $destinationLocation/logs/$(date +"%Y-%m-%d_")"$subjectInformation"-rsync.log
+
+#osascript -e 'tell application "Terminal" to activate' -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down' -e 'tell application "Terminal" to do script "less +F $destinationLocation/logs/$(date +"%Y-%m-%d_")"$subjectInformation"-output.log" in selected tab of the front window'
+#Feedback to the user
+echo "    "
+tput setaf 2; echo "**********rsync transfer complete**********"
+echo "    "
+
+sleep 2
+
+tput setaf 7; echo "  Creating source data checksum manifest..."
+echo "    "
+echo "    "
+
+#Perform MD5 and SHA-1 Checksums via Hashdeep
+hashdeep -bre $sourceData/* > $destinationLocation/logs/$(date +"%Y-%m-%d_")"$subjectInformation"-checksums.log
+
+
+#Feedback to the user
+echo "    "
+tput setaf 7; echo "   Checksum manifest complete..."
+echo "    "
+
+sleep 2
+
+echo "    "
+tput setaf 7; echo "   Auditing checksums (verifying manifest and destination data match)..."
+echo "    "
+
+#Create dummy file to expose checksum audit accuracy
+touch $destinationLocation/originals/$(date +"%Y-%m-%d_")"$subjectInformation"/dummyfile.txt
+
+#Audit MD5 and SHA-1 Checksums via Hashdeep
+hashdeep -r -x -k $destinationLocation/logs/$(date +"%Y-%m-%d_")"$subjectInformation"-checksums.log $destinationLocation/originals/$(date +"%Y-%m-%d_")"$subjectInformation"/ > $destinationLocation/logs/$(date +"%Y-%m-%d_")"$subjectInformation"-checksum-audit.log
+
+
+#Perform basic disk usage comparison
+#du -sch $sourceData/*
+#echo
+#echo ======================
+#echo
+#du -sch $destinationLocation/originals/$(date +"%Y-%m-%d_")"$subjectInformation"/*
+
+
+#Feedback to the user
+tput setaf 2; echo "**********operation complete**********"
+tput sgr0; echo "done"
+echo "    "
+tput bel
+
+
+#
