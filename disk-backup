@@ -1,0 +1,42 @@
+#!/bin/sh
+
+#This script performs a safe file transfer of HRW projects to a bruID (AIP) for archiving and preservation and creates an rsync transfer log.
+
+
+#Receive user input for source, destination, and folder and log naming
+tput setaf 6; echo "Drag and drop source disk here"
+read sourceData
+tput setaf 7; echo "Drag and drop destination disk here"
+read destinationVolume
+
+#Create folders for transfer
+#mkdir $destinationVolume/$sourceData/
+mkdir $destinationVolume/_logs
+
+#echo " "
+#echo " "
+#echo "Total disk space used by source disk"
+#du -sch $sourceData
+#find $sourceData -maxdepth 1 -mindepth 1 -type d | xargs du -sch
+
+echo " "
+echo " "
+
+sleep 2
+
+#Feedback to the user
+echo "    "
+tput setaf 7; echo "   file transfer in progress..."
+echo "    "
+
+#Perform archival file transfer via RSYNC
+rsync -va --progress $sourceData* $destinationVolume > $destinationVolume/_logs/$(date +"%Y-%m-%d")$basename-rsync.txt
+
+#osascript -e 'tell application "Terminal" to activate' -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down' -e 'tell application "Terminal" to do script "less +F $projectLocation/logs/$(date +"%Y-%m-%d_")"$agentName"-output.log" in selected tab of the front window'
+#Feedback to the user
+echo "    "
+tput setaf 2; echo "**********transfer complete**********"
+echo "    "
+
+sleep 30
+#
