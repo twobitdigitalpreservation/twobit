@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#This script performs a safe file transfer of HRW projects to a bruID (AIP) for archiving and preservation and creates an rsync transfer log.
+##This script performs a safe file transfer of HRW projects to a bruID (AIP) for archiving and preservation and creates an rsync transfer log.
 
 
 #Receive user input for source, destination, and folder and log naming
